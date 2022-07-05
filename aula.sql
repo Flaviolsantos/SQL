@@ -61,3 +61,15 @@ where nome = 'Flávio Lourenço dos Santos'))
 
 -- ordem do formando
 order by formandos.nome;
+
+
+--- Apenas os que começam com j o % representa que nao entreça o resto
+select * from formandos
+where nome like 'J%'
+
+-- 
+where nome like 'J_%'
+
+-- nome com f na primeira e c na quinta letra
+select * from formandos
+where nome like 'F______c%'
