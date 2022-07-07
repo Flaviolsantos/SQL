@@ -158,7 +158,17 @@ select CategoryID, count(*) as Total from Products
 group by CategoryID 
 having count(*) = (select CategoryID, count(*) as Total from Products group by CategoryID order by Total limit 1);
 
+-----------------------------
 
+or
+
+select CategoryID, count(*) as Total from Products group by CategoryID 
+having Total = (select count(*) as Total from Products group by CategoryID order by Total desc limit 1)
+order by Total;
+
+select CategoryID, count(*) as Total from Products group by CategoryID 
+having Total = (select count(*) as Total from Products group by CategoryID order by Total limit 1)
+order by Total;
 
 --Sempre que quzer fazer uma comparaçao for uma funcao de grupo tenho que usar o having em vez de where
 
