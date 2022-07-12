@@ -87,5 +87,18 @@ where BirthDate like '195%';
 
 -- ex 19
 
+select SupplierID,CompanyName from Suppliers
+where CompanyName = 'Exotic Liquids' or CompanyName = 'Grandma Kelly''s Homestead' or CompanyName = 'Tokyo Traders';
+
 select ProductName,SupplierID from Products
-where 
+join Suppliers using (SupplierID)
+where  CompanyName = 'Exotic Liquids' or CompanyName = 'Grandma Kelly''s Homestead' or CompanyName = 'Tokyo Traders'
+order by SupplierID;
+
+-- ex 20
+select ShipPostalCode,OrderID,OrderDate from Orders
+where ShipPostalCode like '02389%';
+
+-- ex 21
+select ContactName,ContactTitle,CompanyName from Customers
+where ContactTitle not in (select ContactTitle from Customers where ContactTitle like '&Sales&')
