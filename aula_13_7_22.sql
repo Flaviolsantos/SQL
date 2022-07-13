@@ -110,3 +110,16 @@ JOIN bandaartistas using(idbandas)
 JOIN artistas B using(idartistas)
 GROUP BY C.idbandas
 HAVING sum(B.masculino) = 0);
+
+
+-- ex 7 Quais os disco que tem de artistas solo (apenas um elemento na banda)?
+
+select B.nome,A.nome from bandaartistas C
+join artistas A using (idartistas)
+join bandas B using (idbandas)
+group by C.idbandas
+having count(C.idartistas) = 1
+
+
+-- ex 8 Quais os discos que estão disponíveis em mais do que um formato? Por exemplo, “Em que formatos (78,45,33) tem o Dark All Day?”
+
