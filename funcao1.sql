@@ -1,70 +1,73 @@
-DROP PROCEDURE IF EXISTS NESTED_CURSOR;
-DELIMITER $$
-CREATE PROCEDURE `NESTED_CURSOR`( _ProdructID int)
-BEGIN
-   -- declarar 3 variaveis
-    DECLARE done1 INT DEFAULT FALSE;
-    DECLARE _ProductID int;
-    DECLARE _ProductName varchar(50);
-    DECLARE _StockValue varchar(50);
-   
-   -- Declarar o Cursor1
-    DECLARE cursor1 CURSOR FOR
-    select distinct ProductID,ProductName,sum(UnitsInStock * UnitPrice)
-    from Products
-    where ProductID = _ProdructID
-    group by ProductID;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done1 = TRUE;    
-    
-    -- iniciar o Cursor1
-    
-    OPEN cursor1;
-    READ_LOOP1: LOOP
-        
-        -- vai buscar a linha com Last Name e ID de Employee
-        FETCH cursor1 INTO _ProductID, _ProductName,_StockValue;
-        IF done1 THEN
-            LEAVE READ_LOOP1;
-        END IF;
-        -- Fazer o que há a fazer aqui!
-        SELECT _ProductID, _ProductName,_StockValue;
-       
-       -- Dentro do Block2 esta o segundo cursor
-       BLOCK2:
-       
-			BEGIN  
-            -- declaradas as variaveis do cursor2
-            DECLARE done2 INT DEFAULT FALSE;
-            DECLARE _CategoryID int;  
-            DECLARE _Name VARCHAR(50);  
-            DECLARE _StockValor VARCHAR(50); 
-            
-            
-            -- Declarar o Cursor2
-            DECLARE cursor2 CURSOR FOR
-            select CategoryID,CategoryName,sum(UnitsInStock * UnitPrice)
-            from Categories
-            join Products using (CategoryID)
-            group by CategoryID;
-            DECLARE CONTINUE HANDLER FOR NOT FOUND SET done2 = TRUE;  
-            
-            -- iniciar o Cursos2
-            OPEN cursor2;
-            READ_LOOP2: LOOP
-                FETCH cursor2 INTO _CategoryID, _Name,_StockValor;
-                Fetch cursor1 into _ProductID, _ProductName,_StockValue;
-                IF done2 THEN
-                    LEAVE READ_LOOP2;
-                END IF;
-                -- Fazer o que há a fazer aqui!
-               
-            END LOOP;
-             SELECT _ProductID, _ProductName,_StockValue,_CategoryID, _Name,_StockValor;
-            CLOSE cursor2;      
-        END BLOCK2;        
-    END LOOP;
-    CLOSE cursor1;
-	
-END$$
-DELIMITER ;
-CALL NESTED_CURSOR(1);
+drop trigger  if exists viaturas_before_insert;
+drop trigger  if exists combustivel_before_insert;
+drop trigger  if exists marcas_before_insert;
+drop trigger  if exists frotas_before_insert;
+
+delimiter //
+create trigger viaturas_before_insert
+before insert on viaturas
+for each row
+begin
+DECLARE _mensagem VARCHAR(255);
+
+if new.idviaturas in (select idviaturas from viaturas) then
+set _mensagem = concat('O IDviaturas ',new.idviaturas,' já existe. Criaria um registo duplicado.');
+signal sqlstate '45000' set message_text = _mensagem;
+end if;
+if new.idcombustivel not in (select idcombustivel from combustivel) then
+set _mensagem = concat('Está a inserir um idcombustivel ', new.idcombustivel,' , mas não existe na tabelas combustivel.');
+signal sqlstate '45000' set message_text = _mensagem;
+end if;
+if new.idmarcas not in (select idmarcas from marcas) then
+set _mensagem = concat('Está a inserir um idmarca ', new.idmarcas,' , mas não existe na tabelas marcas.');
+signal sqlstate '45000' set message_text = _mensagem;
+end if;
+end;
+//
+
+delimiter //
+create trigger combustivel_before_insert
+before insert on combustivel
+for each row
+begin
+DECLARE _mensagem VARCHAR(255);
+
+if new.idcombustivel in (select idcombustivel from combustivel) then
+set _mensagem = concat('O idcombustivel ',new.idcombustivel,' já existe. Criaria um registo duplicado.');
+signal sqlstate '45000' set message_text = _mensagem;
+end if;
+end;
+//
+
+delimiter //
+create trigger marcas_before_insert
+before insert on marcas
+for each row
+begin
+DECLARE _mensagem VARCHAR(255);
+
+if new.idmarcas in (select idmarcas from marcas) then
+set _mensagem = concat('O ID ',new.idmarcas,' já existe. Criaria um registo duplicado.');
+signal sqlstate '45000' set message_text = _mensagem;
+end if;
+end;
+//
+
+delimiter //
+create trigger frotas_before_insert
+before insert on frotas
+for each row
+begin
+DECLARE _mensagem VARCHAR(255);
+Declare _idviatura varchar(255);
+
+if (select count(*) from frotas where idviaturas = new.idviaturas and idfrotas = new.idfrotas) > 0 then
+set _mensagem = concat('O Id da Viatura ',new.idviaturas,' -  já existe.');
+signal sqlstate '45000' set message_text = _mensagem;
+end if;
+if new.idviaturas not in (select idviaturas from viaturas) then
+set _mensagem = concat('O ID ',new.idviaturas,' já existe. Criaria um registo duplicado.');
+signal sqlstate '45000' set message_text = _mensagem;
+end if;
+end;
+//
